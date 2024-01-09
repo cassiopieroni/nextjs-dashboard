@@ -39,3 +39,26 @@ export async function createInvoice(formData: FormData) {
   revalidatePath(dashboardRoute);
   redirect(dashboardRoute);
 }
+
+const UpdateInvoice = FormSchema.omit({ id: true, date: true });
+
+export async function updateInvoice(id: string, formData: FormData) {
+  const { customerId, amount, status } = CreateInvoice.parse({
+    customerId: formData.get('customerId'),
+    amount: formData.get('amount'),
+    status: formData.get('status'),
+  });
+
+  // It's usually good practice to store monetary values in cents in your database to 
+  // eliminate JavaScript floating-point errors and ensure greater accuracy.
+  const amountInCents = amount * 100;
+
+  await sql`
+    UPDATE invoices
+    SET customer_id = ${customerId}, amount = ${amountInCents}, status = ${status}
+    WHERE id = ${id}
+  `;
+ 
+  revalidatePath(dashboardRoute);
+  redirect(dashboardRoute);
+}
